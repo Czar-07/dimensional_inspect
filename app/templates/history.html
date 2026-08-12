@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Histórico | DIMENSION-RATE{% endblock %}
+{% block topbar_title %}Histórico de Análises{% endblock %}
+{% block topbar_subtitle %}Resultados recentes armazenados neste navegador{% endblock %}
+{% block content %}
+<section class="page-heading"><div><span class="section-kicker">HISTÓRICO</span><h1>Análises recentes</h1><p>Consulte os últimos relatórios analisados neste dispositivo. Nenhum PDF é enviado para o histórico.</p></div><a class="btn btn-primary" href="/rate"><i class="fa-solid fa-plus"></i> Nova análise</a></section>
+<section class="card history-card"><div class="history-toolbar"><div><h2>Relatórios analisados</h2><span id="historyCount">0 análises</span></div><button class="btn btn-secondary" id="clearHistory" type="button"><i class="fa-solid fa-trash-can"></i> Limpar histórico</button></div><div class="history-list" id="historyList"><div class="history-empty"><i class="fa-regular fa-folder-open"></i><strong>Nenhuma análise registrada</strong><span>Depois de analisar um PDF, o resultado aparecerá aqui.</span><a class="btn btn-primary" href="/rate">Analisar primeiro relatório</a></div></div></section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/history.js', v='20260812') }}"></script>{% endblock %}

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="DIMENSION-RATE — análise automática de relatórios dimensionais e cálculo do RATE.">
+  <meta name="theme-color" content="#070707">
+  <title>{% block title %}DIMENSION-RATE{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20260812.2') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <a class="brand-logo" href="/dashboard" aria-label="Itaesbra — início">
+          <img src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
+        </a>
+        <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Recolher menu"><i class="fa-solid fa-bars"></i></button>
+      </div>
+
+      <nav class="nav" aria-label="Navegação principal">
+        <div class="nav-section">PRINCIPAL</div>
+        <a class="nav-item {% if request.path in ['/', '/dashboard'] %}active{% endif %}" href="/dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+
+        <div class="nav-section">ANÁLISE</div>
+        <a class="nav-item {% if request.path == '/rate' %}active{% endif %}" href="/rate"><i class="fa-solid fa-chart-line"></i><span>Analisar Relatório</span></a>
+        <a class="nav-item {% if request.path == '/history' %}active{% endif %}" href="/history"><i class="fa-solid fa-clock-rotate-left"></i><span>Histórico de Análises</span></a>
+
+        <div class="nav-section">FERRAMENTAS</div>
+        <a class="nav-item" href="/rate"><i class="fa-solid fa-crosshairs"></i><span>Pontos de Vazamento</span></a>
+        <a class="nav-item" href="/rate"><i class="fa-solid fa-ruler-combined"></i><span>Tolerâncias Padrão</span></a>
+        <button class="nav-item nav-button" id="aboutButton" type="button"><i class="fa-solid fa-gear"></i><span>Configurações</span></button>
+
+        <div class="nav-section">SISTEMA</div>
+        <a class="nav-item {% if request.path == '/report' %}active{% endif %}" href="/report"><i class="fa-solid fa-file-lines"></i><span>Relatório Completo</span></a>
+        <button class="nav-item nav-button" id="aboutSystemButton" type="button"><i class="fa-solid fa-circle-info"></i><span>Sobre o Sistema</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <img src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
+        <strong>DIMENSION-RATE</strong>
+        <span><i class="status-dot"></i> Versão 4.0.0</span>
+      </div>
+    </aside>
+
+    <div class="main-shell">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+          <div class="topbar-icon"><i class="fa-solid fa-chart-column"></i></div>
+          <div class="topbar-title"><strong>{% block topbar_title %}Análise de Relatório{% endblock %}</strong><span>{% block topbar_subtitle %}Extração de medições e cálculo do RATE{% endblock %}</span></div>
+        </div>
+        <div class="topbar-actions">
+          <button class="top-icon" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema"><i class="fa-regular fa-sun"></i></button>
+          <div class="user-avatar" title="Usuário"><i class="fa-regular fa-user"></i></div>
+        </div>
+      </header>
+
+      <main class="main-content">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="aboutModal" style="display: none;">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+      <button class="modal-close" id="aboutClose" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
+      <img class="modal-logo" src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
+      <div class="modal-icon"><i class="fa-solid fa-cube"></i></div>
+      <h2 id="aboutTitle">DIMENSION-RATE</h2>
+      <p>Plataforma para leitura de relatórios dimensionais, extração de medições, auditoria dos pontos e cálculo automático do RATE.</p>
+      <div class="modal-meta"><span>Versão 4.0.0</span><span>Flask + PyMuPDF</span></div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js', v='20260812.2') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
