@@ -73,7 +73,7 @@ body{font-family:"Segoe UI",Arial,sans-serif;font-size:14px;letter-spacing:-.005
 .file-details span{color:#858585}
 .icon-button{color:#8b8b8b}
 .icon-button:hover{background:#1a1a1a;color:#ef2028}
-.btn{border-radius:7px; margin:10px; width: 150px;}
+.btn{border-radius:7px; margin:10px;}
 .btn-primary{background:#ef2028;color:#fff;box-shadow:0 6px 18px rgba(239,32,40,.18)}
 .btn-primary:hover{background:#ff2e36}
 .btn-secondary{background:#111;border:1px solid #363636;color:#eee}
