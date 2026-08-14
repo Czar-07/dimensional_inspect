@@ -30,3 +30,13 @@ def report():
 @rate_page.route("/history")
 def history():
     return render_template("history.html")
+
+
+@rate_page.route("/groups")
+def groups():
+    return render_template("groups.html")
+
+
+@rate_page.route("/groups/part")
+def group_part():
+    return render_template("part.html")

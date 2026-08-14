@@ -33,6 +33,13 @@ PADRAO_ELEMENTO = re.compile(
     re.IGNORECASE,
 )
 
+# Características do relatório que possuem a mesma estrutura de
+# uma medição LOC, mas não são LOCs. Ex.: PLANO1 e DIST1.
+PADRAO_CARACTERISTICA = re.compile(
+    r"^\s*(?:[^A-Za-z0-9]*\s*MM\s*)?(?P<elemento>(?:LOC|PLANO|DIST)\d+)\s*-\s*(?P<referencia>.+?)\s*$",
+    re.IGNORECASE,
+)
+
 
 # ============================================================
 # TIPOS DE MEDIÇÃO
@@ -551,7 +558,7 @@ def _extrair_seis_numeros(
         # Não atravessar novo elemento
         # ----------------------------------------------------
 
-        if PADRAO_ELEMENTO.match(
+        if PADRAO_CARACTERISTICA.match(
             linha
         ):
             return None
@@ -772,7 +779,7 @@ def extrair_medicoes(
         # NOVO ELEMENTO
         # ====================================================
 
-        elemento_match = PADRAO_ELEMENTO.match(
+        elemento_match = PADRAO_CARACTERISTICA.match(
             linha
         )
 
@@ -891,6 +898,31 @@ def extrair_pontos(texto: str) -> list[str]:
             pontos.append(elemento)
 
     return pontos
+
+
+def extrair_caracteristicas(texto: str) -> list[str]:
+    """Retorna todas as características numeradas do relatório.
+
+    Inclui LOCs e características independentes como PLANO e DIST.
+    """
+    if not texto:
+        return []
+
+    caracteristicas: list[str] = []
+    vistos: set[str] = set()
+
+    for linha_bruta in str(texto).splitlines():
+        linha = _normalizar_linha(linha_bruta)
+        match = PADRAO_CARACTERISTICA.match(linha)
+        if not match:
+            continue
+
+        elemento = match.group("elemento").upper().strip()
+        if elemento not in vistos:
+            vistos.add(elemento)
+            caracteristicas.append(elemento)
+
+    return caracteristicas
 
 
 # ============================================================

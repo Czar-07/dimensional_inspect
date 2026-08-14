@@ -478,38 +478,50 @@ def _auditoria_pontos(
     grupos: OrderedDict,
     pontos_forcados_fora: set[str] | None = None,
 ) -> list[dict]:
-    """Audita todos os LOCs detectados, sem ocultar perdas do parser."""
+    """Audita todas as características consideradas no RATE.
+
+    LOCs são agrupados por elemento. Características sem LOC (por
+    exemplo PLANO/DIST) são agrupadas pela chave de categoria/referência.
+    """
 
     auditoria = []
-    pontos_forcados_fora = {str(p).strip().upper() for p in (pontos_forcados_fora or set())}
+    pontos_forcados_fora = {
+        str(p).strip().upper()
+        for p in (pontos_forcados_fora or set())
+    }
 
-    def ordem_loc(valor: str):
-        match = re.search(r"\d+", valor or "")
-        return (int(match.group()) if match else 10**9, valor)
+    def ordem_chave(chave):
+        if chave and chave[0] == "ELEMENTO":
+            valor = chave[1]
+            match = re.search(r"\d+", valor or "")
+            return (0, int(match.group()) if match else 10**9, valor)
+        return (1, str(chave[1] if len(chave) > 1 else ""), str(chave[2] if len(chave) > 2 else ""))
 
-    for elemento in sorted(todos_os_pontos, key=ordem_loc):
-        chave = ("ELEMENTO", elemento)
-        medicoes = grupos.get(chave, [])
-
+    # Características com medição: LOC e não-LOC.
+    for chave, medicoes in sorted(grupos.items(), key=lambda item: ordem_chave(item[0])):
         if not medicoes:
-            if elemento in pontos_forcados_fora:
-                status = "FORA"
-                conforme = False
-            else:
-                status = "SEM_MEDICAO"
-                conforme = None
+            continue
+
+        aprovado = _ponto_aprovado(medicoes)
+        primeira = medicoes[0]
+        eh_loc = chave[0] == "ELEMENTO"
+
+        if eh_loc:
+            identificador = chave[1]
+            elemento = identificador
+            referencia = _texto(getattr(primeira, "referencia", ""))
         else:
-            fora = [
-                medicao for medicao in medicoes
-                if not _medicao_aprovada(medicao)
-            ]
-            status = "FORA" if fora else "OK"
-            conforme = not bool(fora)
+            categoria = _texto(getattr(primeira, "categoria", "")) or "OUTROS"
+            referencia = _texto(getattr(primeira, "referencia", "")) or chave[-1]
+            identificador = referencia or categoria
+            elemento = identificador
 
         auditoria.append({
             "elemento": elemento,
-            "status": status,
-            "conforme": conforme,
+            "categoria": _texto(getattr(primeira, "categoria", "")) or "OUTROS",
+            "referencia": referencia,
+            "status": "OK" if aprovado else "FORA",
+            "conforme": aprovado,
             "medicoes": len(medicoes),
             "eixos": [
                 _texto(getattr(m, "eixo", ""))
@@ -520,6 +532,38 @@ def _auditoria_pontos(
                 for m in medicoes
                 if not _medicao_aprovada(m)
             ],
+        })
+
+    # LOCs detectados no PDF mas que não produziram Measurement.
+    for elemento in sorted(
+        todos_os_pontos - {
+            chave[1]
+            for chave in grupos
+            if chave and chave[0] == "ELEMENTO"
+        },
+        key=lambda valor: (
+            int(re.search(r"\d+", valor).group())
+            if re.search(r"\d+", valor)
+            else 10**9,
+            valor,
+        ),
+    ):
+        if elemento in pontos_forcados_fora:
+            status = "FORA"
+            conforme = False
+        else:
+            status = "SEM_MEDICAO"
+            conforme = None
+
+        auditoria.append({
+            "elemento": elemento,
+            "categoria": "OUTROS",
+            "referencia": "FORA VISUAL HEXAGON" if status == "FORA" else None,
+            "status": status,
+            "conforme": conforme,
+            "medicoes": 0,
+            "eixos": [],
+            "fora_tolerancia": [],
         })
 
     return auditoria
@@ -589,7 +633,33 @@ def calcular_rate(
         | pontos_com_medicao
     )
 
-    pontos_total = len(todos_os_pontos)
+    # ========================================================
+    # REGRA DO RATE: CARACTERÍSTICA, NÃO LINHA DE MEDIÇÃO
+    # ========================================================
+    #
+    # Um LOC com X/Y/Z/D/L continua sendo UMA característica.
+    # Porém, relatórios Hexagon também possuem características que
+    # não são LOCs, como PLANO1..4 e DIST1. Cada grupo
+    # (categoria + referência) representa uma característica e
+    # também precisa entrar no denominador do RATE.
+    #
+    # Exemplo do relatório 7131:
+    #   45 LOCs + 4 PLANOS + 1 DIST = 50 características.
+    #
+    # O algoritmo antigo contabilizava somente os LOCs e, por isso,
+    # retornava 45.
+    caracteristicas_com_medicao = len(grupos)
+
+    # LOCs detectados pelo parser mas sem Measurement continuam no
+    # denominador, pois são características existentes no relatório.
+    caracteristicas_sem_medicao = (
+        todos_os_pontos - pontos_com_medicao
+    )
+
+    pontos_total = (
+        caracteristicas_com_medicao
+        + len(caracteristicas_sem_medicao)
+    )
 
     pontos_aprovados = 0
 
@@ -601,17 +671,15 @@ def calcular_rate(
 
     fora_tolerancia = []
 
-    # Primeiro avaliamos todos os LOCs que possuem medições.
+    # Cada grupo representa uma característica do relatório.
+    # Para LOCs, X/Y/Z/D/L pertencem ao mesmo ponto. Para
+    # características sem LOC (PLANO, DIST etc.), cada grupo também
+    # representa uma característica única.
     for chave, grupo in grupos.items():
-
-        if not chave or chave[0] != "ELEMENTO":
-            continue
 
         aprovado = _ponto_aprovado(
             grupo
         )
-
-        elemento = chave[1]
 
         if aprovado:
             pontos_aprovados += 1

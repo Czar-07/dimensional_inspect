@@ -135,3 +135,93 @@ def extrair_texto_pdf(arquivo) -> str:
             documento.close()
 
         dados = None
+
+
+def extrair_metadados_relatorio(texto: str, nome_arquivo: str | None = None) -> dict[str, str | None]:
+    """Extrai identificadores do cabeçalho Hexagon, com fallback pelo nome do arquivo.
+
+    Formato de fallback suportado:
+        7162_752D48642R_PC01_RENAULT.pdf
+
+    Nesse formato:
+        relatório = 7162
+        part number = 752D48642R
+        peça = PC01
+        cliente = RENAULT
+
+    Informações encontradas no PDF sempre têm prioridade sobre o nome do arquivo.
+    """
+    import re
+
+    texto = texto or ""
+    nome_arquivo = nome_arquivo or ""
+
+    def buscar(padroes):
+        for padrao in padroes:
+            m = re.search(padrao, texto, flags=re.IGNORECASE | re.MULTILINE)
+            if m:
+                valor = re.sub(r"\s+", " ", m.group(1)).strip(" :")
+                if valor:
+                    return valor
+        return None
+
+    def fallback_nome_arquivo():
+        base = re.sub(r"\.pdf$", "", nome_arquivo.strip(), flags=re.IGNORECASE)
+        partes = [p.strip() for p in base.split("_") if p.strip()]
+        if len(partes) < 4:
+            return {}
+
+        # O padrão oficial esperado é Nº_RELATÓRIO_PART_NUMBER_PEÇA_CLIENTE.
+        # O cliente pode conter underscores; por isso o restante é preservado.
+        relatorio = partes[0]
+        part_number = partes[1]
+        peca = partes[2]
+        cliente = "_".join(partes[3:])
+
+        if not re.fullmatch(r"\d+", relatorio):
+            return {}
+        if not part_number or not re.fullmatch(r"[A-Za-z0-9.\-]+", part_number):
+            return {}
+
+        return {
+            "report_number": relatorio,
+            "part_number": part_number,
+            "piece": peca,
+            "client": cliente or None,
+        }
+
+    fallback = fallback_nome_arquivo()
+
+    def buscar(padroes):
+        for padrao in padroes:
+            m = re.search(padrao, texto, flags=re.IGNORECASE | re.MULTILINE)
+            if m:
+                valor = re.sub(r"\s+", " ", m.group(1)).strip(" :")
+                if valor:
+                    return valor
+        return None
+
+    return {
+        "part_number": buscar([
+            r"N[º°]?\s*Peça\s*:\s*([^:\n]+)",
+            r"N[º°]?\s*PEÇA\s*[:\-]?\s*([^:\n]+)",
+        ]) or fallback.get("part_number"),
+        "drawing_number": buscar([
+            r"N[º°]?\s*Desenho\s*:\s*([^\n]+?)(?=\s+Nome da Peça|\s+Revisão|$)",
+        ]),
+        "revision": buscar([
+            r"Revisão\s*:\s*([^\n]+)",
+        ]),
+        "report_number": buscar([
+            r"RELATÓRIO DIMENSIONAL Nº\s*:\s*([^\n]+)",
+        ]) or fallback.get("report_number"),
+        "client": buscar([
+            r"Cliente\s+Motivo da Medição\s+Metrologista\s*\n\s*:\s*([^:]+?)\s*:",
+            r"Cliente\s*[:\-]\s*([^\n]+)",
+        ]) or fallback.get("client"),
+        "metrologist": buscar([
+            r"Metrologista\s*[:\-]\s*([^\n]+)",
+            r"Cliente\s+Motivo da Medição\s+Metrologista\s*\n\s*:[^:]+:\s*([^\n]+)",
+        ]),
+        "piece": fallback.get("piece"),
+    }

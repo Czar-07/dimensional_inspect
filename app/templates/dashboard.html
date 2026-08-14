@@ -1,82 +1,32 @@
 {% extends "base.html" %}
-{% block title %}Analisar Relatório | DIMENSION-RATE{% endblock %}
-{% block topbar_title %}Análise de Relatório{% endblock %}
-{% block topbar_subtitle %}Extração de medições e cálculo do RATE{% endblock %}
+{% block title %}Analisar Relatórios | DIMENSION-RATE{% endblock %}
+{% block topbar_title %}Analisar Relatórios{% endblock %}
+{% block topbar_subtitle %}Processamento múltiplo com abertura individual dos resultados{% endblock %}
 {% block content %}
+<section class="page-heading"><div><span class="section-kicker">ANÁLISE DIMENSIONAL</span><h1>Analisar relatórios</h1><p>Selecione um ou vários PDFs. O sistema processa todos e apresenta uma lista de resultados; abra somente o relatório que deseja consultar em detalhe.</p></div></section>
+
 <section class="card upload-card" id="uploadCard">
-  <div class="analysis-card-heading">
-    <div>
-      <span class="section-kicker">ANÁLISE DIMENSIONAL</span>
-      <h1>Analisar Relatório</h1>
-      <p>Faça upload de um relatório PDF para extrair medições e calcular o RATE.</p>
-    </div>
-  </div>
-
+  <div class="analysis-card-heading"><div><span class="section-kicker">LOTE DE ANÁLISE</span><h2>Selecionar relatórios</h2><p>Você pode selecionar vários relatórios produzidos para a mesma peça ou para peças diferentes.</p></div></div>
   <label class="dropzone" id="dropzone" for="pdfInput">
-    <input type="file" id="pdfInput" accept=".pdf,application/pdf" hidden>
-    <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-    <strong>Arraste e solte seu arquivo PDF aqui</strong>
+    <input type="file" id="pdfInput" accept=".pdf,application/pdf" multiple hidden>
+    <div class="drop-icon"><i class="fa-solid fa-layer-group"></i></div>
+    <strong>Arraste e solte um ou vários PDFs aqui</strong>
     <span>ou <b>clique para selecionar</b></span>
-    <small>Apenas arquivos PDF são aceitos • limite de 50 MB</small>
+    <small>Apenas arquivos PDF • limite de 50 MB por requisição</small>
   </label>
-
-  <div class="selected-file" id="selectedFile" hidden>
-    <div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div>
-    <div class="file-details"><strong id="fileName">—</strong><span id="fileSize">—</span></div>
-    <button class="icon-button" id="removeFile" type="button" aria-label="Remover arquivo"><i class="fa-solid fa-xmark"></i></button>
-  </div>
-
-  <button class="btn btn-secondary file-select-button" id="fileSelectButton" type="button">
-    <i class="fa-regular fa-folder-open"></i> Selecionar arquivo
-  </button>
-
-  <button class="btn btn-primary analyze-button" id="btnAnalyze" type="button" disabled>
-    <i class="fa-solid fa-calculator"></i> Calcular RATE
-  </button>
+  <div class="selected-files" id="selectedFiles" hidden></div>
+  <div class="upload-actions"><button class="btn btn-secondary" id="fileSelectButton" type="button"><i class="fa-regular fa-folder-open"></i> Selecionar arquivos</button><button class="btn btn-primary analyze-button" id="btnAnalyze" type="button" disabled><i class="fa-solid fa-calculator"></i> Analisar selecionados</button></div>
 </section>
 
-<section class="status-card loading-card" id="loadingState" hidden>
-  <span class="spinner"></span>
-  <div><strong>Analisando relatório...</strong><span>Extraindo medições e calculando o RATE. Isso pode levar alguns segundos.</span></div>
+<section class="status-card loading-card" id="loadingState" hidden><span class="spinner"></span><div><strong id="loadingTitle">Analisando relatórios...</strong><span id="loadingText">Processando o lote selecionado.</span></div></section>
+<section class="alert-card error-card" id="errorState" hidden><i class="fa-solid fa-circle-exclamation"></i><div><strong>Não foi possível concluir a análise.</strong><span id="errorMessage"></span></div><button class="icon-button" id="closeError" type="button"><i class="fa-solid fa-xmark"></i></button></section>
+
+<section class="card batch-results" id="batchResults" hidden>
+  <div class="batch-header"><div><span class="section-kicker">RESULTADOS DO LOTE</span><h2>Relatórios analisados</h2><p>Os gráficos e a auditoria detalhada não são carregados nesta tela. Clique em <strong>Abrir relatório</strong> para consultar um resultado.</p></div><div class="batch-actions"><span class="count-badge" id="batchCount">0</span><button class="btn btn-secondary" id="btnClearBatch" type="button"><i class="fa-solid fa-rotate"></i> Novo lote</button></div></div>
+  <div class="batch-summary"><div><span>PROCESSADOS</span><strong id="batchProcessed">0</strong></div><div><span>SUCESSOS</span><strong id="batchSuccess">0</strong></div><div><span>FALHAS</span><strong id="batchFailed">0</strong></div><div><span>PART NUMBERS</span><strong id="batchParts">0</strong></div></div>
+  <div id="batchList" class="batch-list"></div>
 </section>
 
-<section class="alert-card error-card" id="errorState" hidden>
-  <i class="fa-solid fa-circle-exclamation"></i>
-  <div><strong>Não foi possível analisar o relatório.</strong><span id="errorMessage">Ocorreu um erro inesperado.</span></div>
-  <button class="icon-button" id="closeError" type="button"><i class="fa-solid fa-xmark"></i></button>
-</section>
-
-<section class="results" id="results" hidden>
-  <div class="result-header card">
-    <div class="result-document"><div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div><div><span>RELATÓRIO ANALISADO</span><strong id="resultFilename">—</strong></div></div>
-    <div class="status-badge" id="consistencyBadge"><i class="fa-solid fa-circle-check"></i> RATE consistente</div>
-  </div>
-
-  <div class="kpi-grid">
-    <article class="kpi kpi-primary"><div><span>RATE CALCULADO</span><i class="fa-solid fa-chart-line"></i></div><strong id="rateCalculated">0,00%</strong><small>índice de qualidade</small></article>
-    <article class="kpi"><div><span>TOTAL DE PONTOS</span><i class="fa-solid fa-ruler"></i></div><strong id="pointsTotal">0</strong><small>medições analisadas</small></article>
-    <article class="kpi kpi-success"><div><span>APROVADOS</span><i class="fa-solid fa-circle-check"></i></div><strong id="pointsApproved">0</strong><small>dentro da tolerância</small></article>
-    <article class="kpi kpi-danger"><div><span>REPROVADOS</span><i class="fa-solid fa-circle-xmark"></i></div><strong id="pointsRejected">0</strong><small>fora da tolerância</small></article>
-  </div>
-
-  <div class="two-columns">
-    <section class="card panel"><div class="panel-title"><div><span>VALIDAÇÃO</span><h2>RATE declarado × calculado</h2></div><i class="fa-solid fa-scale-balanced"></i></div><div class="comparison"><div><span>Declarado no PDF</span><strong id="rateDeclared">Não declarado</strong></div><i class="fa-solid fa-arrow-right"></i><div><span>Calculado pelo sistema</span><strong id="rateCalculatedSecondary">0,00%</strong></div></div><div class="difference"><span>Diferença</span><strong id="rateDifference">0,00 p.p.</strong></div></section>
-    <section class="card panel"><div class="panel-title"><div><span>PROCESSAMENTO</span><h2>Volume de medições</h2></div><i class="fa-solid fa-ruler-combined"></i></div><div class="measurement-summary"><div><span>Extraídas</span><strong id="measurementsExtracted">0</strong></div><div><span>Consideradas</span><strong id="measurementsRate">0</strong></div><div><span>Descartadas</span><strong id="measurementsExcluded">0</strong></div></div></section>
-  </div>
-
-  <div class="two-columns">
-    <section class="card panel"><div class="panel-title"><div><span>DESEMPENHO</span><h2>Resultado do RATE</h2></div><i class="fa-solid fa-chart-line"></i></div><div class="chart-wrap"><canvas id="rateChart"></canvas></div></section>
-    <section class="card panel"><div class="panel-title"><div><span>DISTRIBUIÇÃO</span><h2>Medições por categoria</h2></div><i class="fa-solid fa-chart-pie"></i></div><div class="chart-wrap"><canvas id="categoryChart"></canvas></div></section>
-  </div>
-
-  <section class="card panel"><div class="panel-title"><div><span>NÃO CONFORMIDADES</span><h2>Pontos fora da tolerância</h2></div><span class="count-badge" id="outOfToleranceCount">0</span></div><div class="table-wrap"><table class="data-table"><thead><tr><th>Elemento</th><th>Categoria</th><th>Referência</th><th>Eixo</th><th>Nominal</th><th>Medição</th><th>Desvio</th><th>Fora tol.</th></tr></thead><tbody id="outOfToleranceBody"><tr><td colspan="8" class="empty">Nenhum ponto fora da tolerância.</td></tr></tbody></table></div></section>
-
-  <div class="result-actions"><button class="btn btn-secondary" id="btnNewAnalysis" type="button"><i class="fa-solid fa-rotate"></i> Nova análise</button><a class="btn btn-primary" id="btnOpenReport" href="/report"><i class="fa-solid fa-file-lines"></i> Ver relatório completo</a></div>
-</section>
-
-<section class="how-it-works card">
-  <div class="panel-title"><div><span>FLUXO DE ANÁLISE</span><h2>Como funciona</h2></div><i class="fa-solid fa-circle-info"></i></div>
-  <div class="steps"><div class="step"><div class="step-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div><div><b>1. Upload do PDF</b><span>Selecione um relatório PDF de medição.</span></div></div><i class="step-arrow fa-solid fa-arrow-right"></i><div class="step"><div class="step-icon"><i class="fa-solid fa-magnifying-glass"></i></div><div><b>2. Extração</b><span>O sistema extrai automaticamente as medições e pontos.</span></div></div><i class="step-arrow fa-solid fa-arrow-right"></i><div class="step"><div class="step-icon"><i class="fa-solid fa-calculator"></i></div><div><b>3. Cálculo do RATE</b><span>O RATE é calculado e o relatório de análise é gerado.</span></div></div></div>
-</section>
+<section class="card how-it-works"><div class="panel-title"><div><span>FLUXO DE ANÁLISE</span><h2>Como funciona</h2></div><i class="fa-solid fa-circle-info"></i></div><div class="steps"><div class="step"><div class="step-icon"><i class="fa-solid fa-layer-group"></i></div><div><b>1. Selecione vários PDFs</b><span>Monte um lote com quantos relatórios precisar.</span></div></div><i class="step-arrow fa-solid fa-arrow-right"></i><div class="step"><div class="step-icon"><i class="fa-solid fa-gears"></i></div><div><b>2. Processamento</b><span>Cada relatório é analisado individualmente.</span></div></div><i class="step-arrow fa-solid fa-arrow-right"></i><div class="step"><div class="step-icon"><i class="fa-solid fa-file-lines"></i></div><div><b>3. Abra o desejado</b><span>Gráficos e auditoria aparecem somente no relatório escolhido.</span></div></div></div></section>
 {% endblock %}
-{% block scripts %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script src="{{ url_for('static', filename='js/dashboard.js', v='20260812.2') }}"></script>{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/dashboard.js', v='20260813.5') }}"></script>{% endblock %}

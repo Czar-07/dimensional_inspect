@@ -1,61 +1,62 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light" data-style="minimal">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="DIMENSION-RATE — análise automática de relatórios dimensionais e cálculo do RATE.">
-  <meta name="theme-color" content="#070707">
-  <title>{% block title %}DIMENSION-RATE{% endblock %}</title>
+  <meta name="theme-color" content="#17283b">
+  <title>{% block title %}DIMENSION-RATE — Engenharia Dimensional{% endblock %}</title>
   <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20260812.2') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css', v='20260813.411') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='fontawesome/css/all.min.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
+    <aside class="sidebar" id="sidebar" aria-label="Menu principal">
       <div class="brand">
         <a class="brand-logo" href="/dashboard" aria-label="Itaesbra — início">
-          <img src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
+          <img class="brand-logo-full" src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
+          <img class="brand-logo-mark" src="{{ url_for('static', filename='favicon.svg') }}" alt="DIMENSION-RATE">
         </a>
-        <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Recolher menu"><i class="fa-solid fa-bars"></i></button>
+        <button class="sidebar-collapse" id="sidebarCollapse" type="button" aria-label="Recolher menu" aria-expanded="true">
+          <i class="fa-solid fa-angles-left"></i>
+        </button>
       </div>
 
       <nav class="nav" aria-label="Navegação principal">
         <div class="nav-section">PRINCIPAL</div>
-        <a class="nav-item {% if request.path in ['/', '/dashboard'] %}active{% endif %}" href="/dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+        <a class="nav-item {% if request.path in ['/', '/dashboard'] %}active{% endif %}" href="/dashboard" data-tooltip="Dashboard"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
 
         <div class="nav-section">ANÁLISE</div>
-        <a class="nav-item {% if request.path == '/rate' %}active{% endif %}" href="/rate"><i class="fa-solid fa-chart-line"></i><span>Analisar Relatório</span></a>
-        <a class="nav-item {% if request.path == '/history' %}active{% endif %}" href="/history"><i class="fa-solid fa-clock-rotate-left"></i><span>Histórico de Análises</span></a>
-
-        <div class="nav-section">FERRAMENTAS</div>
-        <a class="nav-item" href="/rate"><i class="fa-solid fa-crosshairs"></i><span>Pontos de Vazamento</span></a>
-        <a class="nav-item" href="/rate"><i class="fa-solid fa-ruler-combined"></i><span>Tolerâncias Padrão</span></a>
-        <button class="nav-item nav-button" id="aboutButton" type="button"><i class="fa-solid fa-gear"></i><span>Configurações</span></button>
+        <a class="nav-item {% if request.path == '/groups' %}active{% endif %}" href="/groups" data-tooltip="Peças & Relatórios"><i class="fa-solid fa-layer-group"></i><span>Peças & Relatórios</span></a>
+        <a class="nav-item {% if request.path == '/rate' %}active{% endif %}" href="/rate" data-tooltip="Analisar Relatório"><i class="fa-solid fa-chart-line"></i><span>Analisar Relatório</span></a>
+        <a class="nav-item {% if request.path == '/history' %}active{% endif %}" href="/history" data-tooltip="Histórico de Análises"><i class="fa-solid fa-clock-rotate-left"></i><span>Histórico de Análises</span></a>
 
         <div class="nav-section">SISTEMA</div>
-        <a class="nav-item {% if request.path == '/report' %}active{% endif %}" href="/report"><i class="fa-solid fa-file-lines"></i><span>Relatório Completo</span></a>
-        <button class="nav-item nav-button" id="aboutSystemButton" type="button"><i class="fa-solid fa-circle-info"></i><span>Sobre o Sistema</span></button>
+        <button class="nav-item nav-button" id="aboutButton" type="button" data-tooltip="Sobre o sistema"><i class="fa-solid fa-circle-info"></i><span>Sobre o sistema</span></button>
+        <a class="nav-item {% if request.path == '/report' %}active{% endif %}" href="/report" data-tooltip="Relatório Completo"><i class="fa-solid fa-file-lines"></i><span>Relatório Completo</span></a>
       </nav>
 
       <div class="sidebar-footer">
         <img src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
         <strong>DIMENSION-RATE</strong>
-        <span><i class="status-dot"></i> Versão 4.0.0</span>
+        <span><i class="status-dot"></i> Versão 4.1.1</span>
       </div>
     </aside>
 
     <div class="main-shell">
       <header class="topbar">
         <div class="topbar-left">
-          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu"><i class="fa-solid fa-bars"></i></button>
+          <button class="mobile-menu" id="mobileMenu" type="button" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
           <div class="topbar-icon"><i class="fa-solid fa-chart-column"></i></div>
           <div class="topbar-title"><strong>{% block topbar_title %}Análise de Relatório{% endblock %}</strong><span>{% block topbar_subtitle %}Extração de medições e cálculo do RATE{% endblock %}</span></div>
         </div>
         <div class="topbar-actions">
-          <button class="top-icon" id="themeToggle" type="button" title="Alternar tema" aria-label="Alternar tema"><i class="fa-regular fa-sun"></i></button>
-          <div class="user-avatar" title="Usuário"><i class="fa-regular fa-user"></i></div>
+          <button class="top-icon" id="quickTheme" type="button" aria-label="Alternar modo de cor" title="Alternar claro/escuro"><i class="fa-regular fa-moon"></i></button>
+          <button class="top-icon" id="settingsButton" type="button" aria-label="Abrir configurações" title="Configurações"><i class="fa-solid fa-gear"></i></button>
+          <button class="user-avatar" type="button" aria-label="Perfil do usuário" title="Usuário"><i class="fa-regular fa-user"></i></button>
         </div>
       </header>
 
@@ -65,18 +66,79 @@
     </div>
   </div>
 
-  <div class="modal-backdrop" id="aboutModal" style="display: none;">
+  <div class="modal-backdrop" id="aboutModal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
       <button class="modal-close" id="aboutClose" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button>
       <img class="modal-logo" src="{{ url_for('static', filename='itaesbra-logo.png') }}" alt="ITAESBRA">
       <div class="modal-icon"><i class="fa-solid fa-cube"></i></div>
       <h2 id="aboutTitle">DIMENSION-RATE</h2>
       <p>Plataforma para leitura de relatórios dimensionais, extração de medições, auditoria dos pontos e cálculo automático do RATE.</p>
-      <div class="modal-meta"><span>Versão 4.0.0</span><span>Flask + PyMuPDF</span></div>
+      <div class="modal-meta"><span>Versão 4.1.1</span><span>Flask + PyMuPDF</span></div>
     </div>
   </div>
 
-  <script src="{{ url_for('static', filename='js/app.js', v='20260812.2') }}"></script>
+  <div class="settings-backdrop" id="settingsModal" hidden>
+    <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <header class="settings-header">
+        <div class="settings-heading">
+          <div class="settings-symbol"><i class="fa-solid fa-sliders"></i></div>
+          <div><span class="settings-kicker">CENTRAL DO SISTEMA</span><h2 id="settingsTitle">Configurações</h2><p>Personalize a interface do DIMENSION-RATE sem alterar seus dados.</p></div>
+        </div>
+        <button class="modal-close" id="settingsClose" type="button" aria-label="Fechar configurações"><i class="fa-solid fa-xmark"></i></button>
+      </header>
+
+      <div class="settings-layout">
+        <nav class="settings-tabs" role="tablist" aria-label="Configurações">
+          <button class="settings-tab active" data-tab="personalizacao" role="tab" aria-selected="true"><i class="fa-solid fa-palette"></i><span>Personalização</span><small>Estilo e aparência</small></button>
+          <button class="settings-tab" data-tab="interface" role="tab" aria-selected="false"><i class="fa-solid fa-desktop"></i><span>Interface</span><small>Layout e navegação</small></button>
+          <button class="settings-tab" data-tab="analise" role="tab" aria-selected="false"><i class="fa-solid fa-chart-simple"></i><span>Análise</span><small>Preferências de cálculo</small></button>
+          <button class="settings-tab" data-tab="sistema" role="tab" aria-selected="false"><i class="fa-solid fa-circle-info"></i><span>Sistema</span><small>Informações e versão</small></button>
+        </nav>
+
+        <div class="settings-content">
+          <div class="settings-panel active" data-panel="personalizacao" role="tabpanel">
+            <div class="settings-panel-title"><span class="settings-kicker">IDENTIDADE VISUAL</span><h3>Personalização</h3><p>Escolha o estilo visual. Cada estilo funciona nos modos claro e escuro.</p></div>
+            <div class="theme-mode-row">
+              <div><strong>Modo de aparência</strong><span>Escolha como o sistema será exibido.</span></div>
+              <div class="segmented-control" id="themeModeControl"><button type="button" data-theme-value="light"><i class="fa-regular fa-sun"></i> Claro</button><button type="button" data-theme-value="dark"><i class="fa-regular fa-moon"></i> Escuro</button></div>
+            </div>
+            <div class="style-grid" id="styleGrid">
+              <button class="style-card selected" type="button" data-style-value="minimal"><span class="style-preview minimal-preview"><i></i><i></i><i></i></span><strong>Minimalismo</strong><small>Limpo, técnico e discreto</small><em>Padrão</em></button>
+              <button class="style-card" type="button" data-style-value="artdeco"><span class="style-preview artdeco-preview"><i></i><i></i><i></i></span><strong>Art Déco</strong><small>Geométrico, elegante e clássico</small></button>
+              <button class="style-card" type="button" data-style-value="industrial"><span class="style-preview industrial-preview"><i></i><i></i><i></i></span><strong>Industrial</strong><small>Robusto, técnico e estrutural</small></button>
+              <button class="style-card" type="button" data-style-value="scandinavian"><span class="style-preview scandinavian-preview"><i></i><i></i><i></i></span><strong>Escandinavo</strong><small>Claro, funcional e acolhedor</small></button>
+              <button class="style-card" type="button" data-style-value="boho"><span class="style-preview boho-preview"><i></i><i></i><i></i></span><strong>Boho Chic</strong><small>Orgânico, criativo e expressivo</small></button>
+              <button class="style-card" type="button" data-style-value="rustic"><span class="style-preview rustic-preview"><i></i><i></i><i></i></span><strong>Rústico</strong><small>Natural, sólido e artesanal</small></button>
+              <button class="style-card" type="button" data-style-value="contemporary"><span class="style-preview contemporary-preview"><i></i><i></i><i></i></span><strong>Contemporâneo</strong><small>Moderno, preciso e sofisticado</small></button>
+              <button class="style-card" type="button" data-style-value="wabisabi"><span class="style-preview wabisabi-preview"><i></i><i></i><i></i></span><strong>Wabi-Sabi</strong><small>Natural, sereno e imperfeito</small></button>
+            </div>
+          </div>
+
+          <div class="settings-panel" data-panel="interface" role="tabpanel">
+            <div class="settings-panel-title"><span class="settings-kicker">EXPERIÊNCIA</span><h3>Interface</h3><p>Controle o comportamento da navegação e do menu lateral.</p></div>
+            <div class="settings-options">
+              <label class="setting-switch"><span><strong>Menu lateral compacto</strong><small>Exibir apenas os ícones do menu no desktop.</small></span><input type="checkbox" id="compactSidebar"><i></i></label>
+              <label class="setting-switch"><span><strong>Fechar menu no celular</strong><small>Fechar automaticamente após acessar uma página.</small></span><input type="checkbox" id="closeMobileNav" checked><i></i></label>
+              <label class="setting-switch"><span><strong>Animações da interface</strong><small>Manter transições suaves entre estados e componentes.</small></span><input type="checkbox" id="uiMotion" checked><i></i></label>
+            </div>
+          </div>
+
+          <div class="settings-panel" data-panel="analise" role="tabpanel">
+            <div class="settings-panel-title"><span class="settings-kicker">ENGENHARIA</span><h3>Preferências de análise</h3><p>Área reservada para preferências relacionadas ao fluxo de análise dimensional.</p></div>
+            <div class="settings-info-grid"><div><i class="fa-solid fa-file-pdf"></i><strong>PDF</strong><span>Extração automática de medições.</span></div><div><i class="fa-solid fa-ruler-combined"></i><strong>RATE</strong><span>Cálculo e auditoria dimensional.</span></div><div><i class="fa-solid fa-clock-rotate-left"></i><strong>Histórico</strong><span>Registro das análises realizadas.</span></div></div>
+          </div>
+
+          <div class="settings-panel" data-panel="sistema" role="tabpanel">
+            <div class="settings-panel-title"><span class="settings-kicker">INFORMAÇÕES</span><h3>Sistema</h3><p>Dados técnicos da instalação atual.</p></div>
+            <div class="system-version"><div class="system-mark"><i class="fa-solid fa-cube"></i></div><div><strong>DIMENSION-RATE</strong><span>Versão 4.1.1</span><small>Flask + PyMuPDF · Engenharia Dimensional</small></div></div>
+          </div>
+        </div>
+      </div>
+      <footer class="settings-footer"><span><i class="fa-solid fa-check"></i> Preferências salvas neste navegador</span><button class="btn btn-secondary" id="resetSettings" type="button">Restaurar padrão</button></footer>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js', v='20260813.411') }}"></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

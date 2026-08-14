@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Família de Peça | DIMENSION-RATE{% endblock %}
+{% block topbar_title %}Família de Peça{% endblock %}
+{% block topbar_subtitle %}Relatórios individuais da mesma família dimensional{% endblock %}
+{% block content %}
+<section class="page-heading deco-heading part-page-heading"><div><a class="back-link" href="/groups"><i class="fa-solid fa-arrow-left"></i> Voltar para Peças & Relatórios</a><span class="section-kicker">FAMÍLIA DIMENSIONAL</span><h1 id="partTitle">—</h1><p id="partSubtitle">—</p></div></section>
+<section class="part-overview" id="partOverview"></section>
+<section class="card part-reports-page"><div class="part-reports-page-head"><div><span class="section-kicker">RELATÓRIOS</span><h2>Histórico da peça</h2><p>Cada item abaixo abre o relatório completo daquela medição.</p></div><label class="search-box"><i class="fa-solid fa-magnifying-glass"></i><input id="partSearch" type="search" placeholder="Pesquisar nesta família..."></label></div><div id="partReportsList" class="part-report-list"></div></section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/part.js', v='20260813.1') }}"></script>{% endblock %}

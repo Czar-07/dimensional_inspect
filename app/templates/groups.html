@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Peças & Relatórios | DIMENSION-RATE{% endblock %}
+{% block topbar_title %}Peças & Relatórios{% endblock %}
+{% block topbar_subtitle %}Catálogo dimensional e gestão de relatórios{% endblock %}
+{% block content %}
+<section class="page-heading deco-heading groups-page-heading">
+  <div>
+    <span class="section-kicker">CATÁLOGO DIMENSIONAL</span>
+    <h1>Peças & Relatórios</h1>
+    <p>Organize relatórios por Part Number, encontre análises individuais, compare resultados e reúna códigos diferentes quando representam a mesma peça.</p>
+  </div>
+  <div class="heading-actions"><a class="btn btn-primary" href="/rate"><i class="fa-solid fa-file-circle-plus"></i> Nova análise</a></div>
+</section>
+
+<section class="group-stats">
+  <article class="deco-stat"><span>FAMÍLIAS</span><strong id="groupCount">0</strong><small>grupos dimensionais</small></article>
+  <article class="deco-stat"><span>RELATÓRIOS</span><strong id="reportCount">0</strong><small>análises armazenadas</small></article>
+  <article class="deco-stat"><span>REPROVAÇÕES</span><strong id="rejectedCount">0</strong><small>pontos fora de tolerância</small></article>
+  <article class="deco-stat"><span>MÉDIA RATE</span><strong id="averageRate">—</strong><small>por relatório</small></article>
+</section>
+
+<section class="card group-toolbar group-toolbar-pro">
+  <div class="explore-copy"><span class="section-kicker">EXPLORAÇÃO</span><h2>Catálogo de análises</h2><p>Sem pesquisa, navegue pelas famílias. Ao pesquisar, os resultados passam a ser <strong>relatórios individuais</strong>.</p></div>
+  <div class="group-toolbar-right">
+    <label class="search-box search-box-pro"><i class="fa-solid fa-magnifying-glass"></i><input id="groupSearch" type="search" placeholder="Pesquisar relatório, Part Number, cliente..."></label>
+    <button class="btn btn-filter" id="filterButton" type="button" aria-expanded="false"><i class="fa-solid fa-sliders"></i> Filtros <span id="filterCount" class="filter-count" hidden>0</span></button>
+    <button class="btn btn-primary" id="analyzeSelectedGroups" type="button" disabled><i class="fa-solid fa-chart-column"></i> Comparar <span id="selectedReportCount"></span></button>
+  </div>
+  <div class="filter-panel" id="filterPanel" hidden>
+    <div class="filter-field"><label for="filterClient">Cliente</label><select id="filterClient"><option value="">Todos</option></select></div>
+    <div class="filter-field"><label for="filterMetrologist">Metrologista</label><select id="filterMetrologist"><option value="">Todos</option></select></div>
+    <div class="filter-field"><label for="sortReports">Ordenar por</label><select id="sortReports"><option value="recent">Mais recentes</option><option value="oldest">Mais antigos</option><option value="rate_desc">RATE maior</option><option value="rate_asc">RATE menor</option><option value="part_asc">Part Number A–Z</option><option value="report_asc">Relatório A–Z</option></select></div>
+    <button class="btn btn-ghost" id="clearFilters" type="button"><i class="fa-solid fa-rotate-left"></i> Limpar</button>
+  </div>
+</section>
+
+<section class="catalog-actions" id="catalogActions" hidden>
+  <div><strong id="selectedPartCount">0</strong> famílias selecionadas</div>
+  <button class="btn btn-secondary" id="mergePartsButton" type="button"><i class="fa-solid fa-object-group"></i> Juntar peças</button>
+</section>
+
+<section id="searchResults" class="search-results" hidden></section>
+<section id="groupsGrid" class="groups-grid"></section>
+<section id="groupsEmpty" class="card history-empty" hidden><i class="fa-solid fa-layer-group"></i><strong>Nenhuma análise encontrada</strong><span>Ajuste a pesquisa ou os filtros para encontrar um relatório.</span><a class="btn btn-primary" href="/rate">Analisar relatório</a></section>
+
+<div class="app-modal" id="mergeModal" hidden role="dialog" aria-modal="true" aria-labelledby="mergeTitle">
+  <div class="app-modal-card merge-modal-card">
+    <div class="app-modal-head"><div><span class="section-kicker">ORGANIZAÇÃO</span><h2 id="mergeTitle">Juntar famílias de peças</h2></div><button class="icon-button" id="mergeClose" type="button" aria-label="Fechar"><i class="fa-solid fa-xmark"></i></button></div>
+    <p class="merge-description">Use esta função quando Part Numbers diferentes representam a mesma peça, por exemplo lado direito e lado esquerdo. Os relatórios continuam individuais, mas passam a aparecer em uma única família.</p>
+    <div class="merge-selection" id="mergeSelection"></div>
+    <label class="merge-name-field"><span>Nome da família</span><input id="mergeName" type="text" maxlength="80" placeholder="Ex.: Suporte lateral — conjunto E/D"></label>
+    <div class="modal-actions"><button class="btn btn-ghost" id="mergeCancel" type="button">Cancelar</button><button class="btn btn-primary" id="mergeConfirm" type="button"><i class="fa-solid fa-object-group"></i> Juntar famílias</button></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/groups.js', v='20260813.2') }}"></script>{% endblock %}

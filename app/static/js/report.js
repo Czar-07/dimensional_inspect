@@ -1,18 +1,53 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
+    const comparisonRaw = sessionStorage.getItem("dimensionRateComparison");
     const raw = sessionStorage.getItem("dimensionRateReport");
-    if (!raw) { mostrarSemDados(); return; }
-
     let rateChart = null;
     let categoryChart = null;
 
+    if (comparisonRaw) {
+        try {
+            const items = JSON.parse(comparisonRaw);
+            if (Array.isArray(items) && items.length >= 2) {
+                renderizarComparacao(items);
+                return;
+            }
+        } catch (erro) { console.warn("[DIMENSION-RATE] Comparação inválida", erro); }
+    }
+    if (!raw) { mostrarSemDados(); return; }
     try {
         const data = JSON.parse(raw);
         renderizarRelatorio(data);
     } catch (erro) {
         console.error("[DIMENSION-RATE] Erro ao carregar relatório:", erro);
         mostrarSemDados();
+    }
+
+    function renderizarComparacao(items) {
+        const banner = document.getElementById("comparisonBanner");
+        const panel = document.getElementById("comparisonPanel");
+        const body = document.getElementById("comparisonBody");
+        if (!banner || !panel || !body) return;
+        banner.hidden = false;
+        panel.hidden = false;
+        body.innerHTML = items.map((data, index) => {
+            const d = data.document || {}, c = data.rate?.calculated || {};
+            return `<tr><td><strong>${escapeHtml(d.report_number || d.filename || "—")}</strong></td><td>${escapeHtml(d.part_number || "SEM PART NUMBER")}</td><td>${escapeHtml(d.date || "—")}</td><td>${c.points ?? 0}</td><td class="dr-positive">${c.approved ?? 0}</td><td class="dr-negative">${c.rejected ?? 0}</td><td><strong>${percentual(c.percentage)}</strong></td><td><button class="btn btn-secondary comparison-open" data-index="${index}" type="button"><i class="fa-solid fa-file-lines"></i> Abrir</button></td></tr>`;
+        }).join("");
+        body.querySelectorAll(".comparison-open").forEach(btn => btn.addEventListener("click", () => {
+            const data = items[Number(btn.dataset.index)];
+            sessionStorage.removeItem("dimensionRateComparison");
+            sessionStorage.setItem("dimensionRateReport", JSON.stringify(data));
+            location.reload();
+        }));
+        document.getElementById("exitComparison")?.addEventListener("click", () => {
+            sessionStorage.removeItem("dimensionRateComparison");
+            if (items[0]) sessionStorage.setItem("dimensionRateReport", JSON.stringify(items[0]));
+            location.reload();
+        }, {once:true});
+        // Na comparação, os gráficos individuais permanecem fechados; só aparecem ao abrir um relatório.
+        document.querySelectorAll(".report-hero,.document-stats,.report-kpis,.two-columns,.report-detail-section,.report-section,.report-table-section").forEach(el => el.hidden = true);
     }
 
     function renderizarRelatorio(data) {

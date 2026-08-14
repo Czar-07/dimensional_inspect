@@ -13,6 +13,7 @@ import time
 
 from app.services.pdf_parser import (
     extrair_texto_pdf,
+    extrair_metadados_relatorio,
 )
 
 from app.services.measurement_service import (
@@ -131,6 +132,8 @@ def analisar_rate():
                     "Não foi possível extrair texto do PDF."
             }), 422
 
+        metadados = extrair_metadados_relatorio(texto, nome_arquivo=nome_arquivo)
+
         # ====================================================
         # RATE DECLARADO
         # ====================================================
@@ -162,7 +165,7 @@ def analisar_rate():
         print(
             f"[RATE] Parsing: {time.perf_counter() - inicio:.2f}s "
             f"| medições={len(medicoes)} "
-            f"| pontos={len(pontos_detectados)} "
+            f"| LOCs={len(pontos_detectados)} "
             f"| fora={len(pontos_forcados_fora)}"
         )
 
@@ -211,10 +214,26 @@ def analisar_rate():
                 "filename":
                     nome_arquivo,
 
+                "part_number": metadados.get("part_number"),
+                "drawing_number": metadados.get("drawing_number"),
+                "revision": metadados.get("revision"),
+                "report_number": metadados.get("report_number"),
+                "client": metadados.get("client"),
+                "metrologist": metadados.get("metrologist"),
+                "piece": metadados.get("piece"),
+
                 "measurements_extracted":
                     resultado.measurements_count,
 
+                # 45 LOCs neste relatório, mas 50 características
+                # dimensionais: os 5 itens adicionais são DIST1 + PLANO1..4.
+                "locs_detected":
+                    len(pontos_detectados),
+
                 "points_calculated":
+                    resultado.calculated_points,
+
+                "characteristics_calculated":
                     resultado.calculated_points,
 
             },
